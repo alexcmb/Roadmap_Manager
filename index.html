@@ -222,6 +222,20 @@
                 <div class="flex gap-6">
                     <button
                         type="button"
+                        onclick="app.exportData()"
+                        class="hover:text-green-600 transition-colors flex items-center text-green-500"
+                    >
+                        <i class="fa-solid fa-download mr-2"></i><span data-i18n="btnExport">Exporter</span>
+                    </button>
+                    <button
+                        type="button"
+                        onclick="app.importData()"
+                        class="hover:text-blue-600 transition-colors flex items-center text-blue-500"
+                    >
+                        <i class="fa-solid fa-upload mr-2"></i><span data-i18n="btnImport">Importer</span>
+                    </button>
+                    <button
+                        type="button"
                         onclick="app.resetData()"
                         class="hover:text-red-600 transition-colors flex items-center text-red-400"
                     >
@@ -249,7 +263,11 @@
                     btnAddPhase: 'Ajouter une nouvelle Phase',
                     btnAddPhaseDesc: 'Cliquez pour créer une nouvelle étape majeure',
                     btnReset: 'Réinitialiser par défaut',
+                    btnExport: 'Exporter',
+                    btnImport: 'Importer',
                     lblSaved: 'Sauvegarde auto',
+                    importSuccess: 'Données importées avec succès !',
+                    importError: "Erreur lors de l'importation. Vérifiez le format du fichier.",
                     lblProgress: 'Progression',
                     lblNotes: 'Notes & Livrables',
                     btnAddTask: 'Ajouter une tâche',
@@ -277,7 +295,11 @@
                     btnAddPhase: 'Add a new Phase',
                     btnAddPhaseDesc: 'Click to create a new major step',
                     btnReset: 'Reset to default',
+                    btnExport: 'Export',
+                    btnImport: 'Import',
                     lblSaved: 'Auto-saved',
+                    importSuccess: 'Data imported successfully!',
+                    importError: 'Import error. Please check the file format.',
                     lblProgress: 'Progress',
                     lblNotes: 'Notes & Deliverables',
                     btnAddTask: 'Add a task',
@@ -305,7 +327,11 @@
                     btnAddPhase: 'Añadir nueva Fase',
                     btnAddPhaseDesc: 'Haga clic para crear una etapa',
                     btnReset: 'Restablecer',
+                    btnExport: 'Exportar',
+                    btnImport: 'Importar',
                     lblSaved: 'Guardado auto',
+                    importSuccess: '¡Datos importados con éxito!',
+                    importError: 'Error de importación. Compruebe el formato del archivo.',
                     lblProgress: 'Progreso',
                     lblNotes: 'Notas y Entregables',
                     btnAddTask: 'Añadir tarea',
@@ -549,6 +575,91 @@
                         this.render();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
+                },
+
+                exportData() {
+                    const exportData = {
+                        version: '2.2.0',
+                        exportDate: new Date().toISOString(),
+                        language: this.lang,
+                        meta: JSON.parse(localStorage.getItem('roadmap_meta_v4') || '{}'),
+                        data: this.data
+                    };
+
+                    const dataStr = JSON.stringify(exportData, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `roadmap-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                },
+
+                importData() {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'application/json,.json';
+                    input.onchange = e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onload = event => {
+                            try {
+                                const importedData = JSON.parse(event.target.result);
+
+                                // Validate imported data structure
+                                if (!importedData.data || !Array.isArray(importedData.data)) {
+                                    throw new Error('Invalid data structure');
+                                }
+
+                                // Validate each phase has required properties
+                                importedData.data.forEach(phase => {
+                                    if (
+                                        !Object.prototype.hasOwnProperty.call(phase, 'title') ||
+                                        !Object.prototype.hasOwnProperty.call(phase, 'tasks') ||
+                                        !Array.isArray(phase.tasks)
+                                    ) {
+                                        throw new Error('Invalid phase structure');
+                                    }
+                                });
+
+                                // Import the data
+                                this.data = importedData.data;
+                                this.save();
+
+                                // Import metadata if available
+                                if (importedData.meta) {
+                                    localStorage.setItem('roadmap_meta_v4', JSON.stringify(importedData.meta));
+                                    if (importedData.meta.title) {
+                                        document.getElementById('project-title').innerText = importedData.meta.title;
+                                    }
+                                    if (importedData.meta.desc) {
+                                        document.getElementById('project-desc').innerText = importedData.meta.desc;
+                                    }
+                                }
+
+                                // Import language if available
+                                if (importedData.language && i18n[importedData.language]) {
+                                    this.lang = importedData.language;
+                                    localStorage.setItem('roadmap_lang', importedData.language);
+                                    document.getElementById('lang-selector').value = importedData.language;
+                                    this.updateUITexts();
+                                }
+
+                                this.render();
+                                alert(this.t('importSuccess'));
+                            } catch (error) {
+                                console.error('Import error:', error);
+                                alert(this.t('importError'));
+                            }
+                        };
+                        reader.readAsText(file);
+                    };
+                    input.click();
                 },
 
                 // --- RENDER ---
