@@ -1,0 +1,39 @@
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary Files
+*.tmp
+*.log
+*.bak
+*.cache
+
+# Node modules (if added in future)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# OS Files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Test reports
+test-results/
+playwright-report/
+*.spec.js.snap
+
+# Environment variables
+.env
+.env.local
+.env.*.local
