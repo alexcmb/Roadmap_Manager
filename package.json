@@ -50,5 +50,5 @@
     "homepage": "https://github.com/alexcmb/Roadmap_Manager#readme",
     "dependencies": {
         "tmp": "^0.2.5"
-}
+    }
 }

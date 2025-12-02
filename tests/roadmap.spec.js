@@ -273,10 +273,8 @@ test.describe('Roadmap Manager', () => {
 
         // Create a temporary file
         const fs = require('fs');
-        const path = require('path');
-        const os = require('os');
-        const tmpDir = os.tmpdir();
-        const tmpFile = path.join(tmpDir, 'test-import.json');
+        const tmpFileObj = tmp.fileSync({ postfix: '.json', discardDescriptor: true });
+        const tmpFile = tmpFileObj.name;
         fs.writeFileSync(tmpFile, JSON.stringify(testData));
 
         // Handle the file chooser and alert
@@ -328,7 +326,7 @@ test.describe('Roadmap Manager', () => {
 
         // Create an invalid JSON file
         const fs = require('fs');
-        const tmpFileObj = tmp.fileSync({ postfix: '.json' });
+        const tmpFileObj = tmp.fileSync({ postfix: '.json', discardDescriptor: true });
         const tmpFile = tmpFileObj.name;
         fs.writeFileSync(tmpFile, JSON.stringify({ invalid: 'data' }));
 
