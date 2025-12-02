@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const tmp = require('tmp');
 
 test.describe('Roadmap Manager', () => {
     test.beforeEach(async ({ page }) => {
@@ -327,10 +328,8 @@ test.describe('Roadmap Manager', () => {
 
         // Create an invalid JSON file
         const fs = require('fs');
-        const path = require('path');
-        const os = require('os');
-        const tmpDir = os.tmpdir();
-        const tmpFile = path.join(tmpDir, 'test-invalid.json');
+        const tmpFileObj = tmp.fileSync({ postfix: '.json' });
+        const tmpFile = tmpFileObj.name;
         fs.writeFileSync(tmpFile, JSON.stringify({ invalid: 'data' }));
 
         // Handle the alert
