@@ -35,25 +35,26 @@ test.describe('Roadmap Manager', () => {
     test('should add a new phase', async ({ page }) => {
         await page.goto('/');
 
+        // Get initial phase count
+        const initialCount = await page.locator('.phase-card').count();
+
         // Click add phase button
         const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
         await addButton.click();
 
         // Wait for the new phase to appear
-        await page.waitForTimeout(500);
+        await expect(page.locator('.phase-card')).toHaveCount(initialCount + 1);
 
         // Check that a phase card exists
-        const phaseCard = page.locator('.phase-card').first();
+        const phaseCard = page.locator('.phase-card').last();
         await expect(phaseCard).toBeVisible();
     });
 
     test('should toggle task completion', async ({ page }) => {
         await page.goto('/');
 
-        // Add a phase if none exists
-        const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
-        await addButton.click();
-        await page.waitForTimeout(500);
+        // Get initial phase count (should be 1 default phase)
+        const initialCount = await page.locator('.phase-card').count();
 
         // Find and click the first checkbox
         const checkbox = page.locator('.custom-checkbox').first();
@@ -61,7 +62,6 @@ test.describe('Roadmap Manager', () => {
 
         // Check the checkbox
         await checkbox.check();
-        await page.waitForTimeout(300);
 
         // Verify it's checked
         await expect(checkbox).toBeChecked();
@@ -70,10 +70,10 @@ test.describe('Roadmap Manager', () => {
     test('should save data to localStorage', async ({ page }) => {
         await page.goto('/');
 
-        // Add a phase
-        const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
-        await addButton.click();
-        await page.waitForTimeout(500);
+        // Toggle a task to trigger save
+        const checkbox = page.locator('.custom-checkbox').first();
+        await checkbox.check();
+        await expect(checkbox).toBeChecked();
 
         // Check that data was saved to localStorage
         const savedData = await page.evaluate(() => {
@@ -82,6 +82,7 @@ test.describe('Roadmap Manager', () => {
 
         expect(savedData).toBeTruthy();
         expect(savedData).toContain('tasks');
+        expect(savedData).toContain('done');
     });
 
     test('should change language', async ({ page }) => {
@@ -89,7 +90,6 @@ test.describe('Roadmap Manager', () => {
 
         // Select English
         await page.locator('#lang-selector').selectOption('en');
-        await page.waitForTimeout(300);
 
         // Check that some text changed to English
         const addButton = page.getByRole('button', { name: /add a new phase/i });
@@ -99,18 +99,16 @@ test.describe('Roadmap Manager', () => {
     test('should update global progress', async ({ page }) => {
         await page.goto('/');
 
-        // Add a phase
-        const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
-        await addButton.click();
-        await page.waitForTimeout(500);
-
         // Get initial progress
         const initialProgress = await page.locator('#header-percent').textContent();
 
         // Toggle a task
         const checkbox = page.locator('.custom-checkbox').first();
         await checkbox.check();
-        await page.waitForTimeout(300);
+        await expect(checkbox).toBeChecked();
+
+        // Wait for progress to update
+        await expect(page.locator('#header-percent')).not.toHaveText(initialProgress);
 
         // Get updated progress
         const updatedProgress = await page.locator('#header-percent').textContent();
@@ -122,12 +120,7 @@ test.describe('Roadmap Manager', () => {
     test('should allow editing phase title', async ({ page }) => {
         await page.goto('/');
 
-        // Add a phase
-        const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
-        await addButton.click();
-        await page.waitForTimeout(500);
-
-        // Find and edit the phase title
+        // Find and edit the first phase title
         const phaseTitle = page.locator('.phase-card h2[contenteditable="true"]').first();
         await phaseTitle.click();
         await phaseTitle.fill('My Custom Phase');
@@ -146,11 +139,9 @@ test.describe('Roadmap Manager', () => {
         // Add a new phase
         const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
         await addButton.click();
-        await page.waitForTimeout(500);
 
         // Verify phase was added
-        const afterAddCount = await page.locator('.phase-card').count();
-        expect(afterAddCount).toBe(initialCount + 1);
+        await expect(page.locator('.phase-card')).toHaveCount(initialCount + 1);
 
         // Listen for confirmation dialog
         page.on('dialog', (dialog) => dialog.accept());
@@ -158,31 +149,29 @@ test.describe('Roadmap Manager', () => {
         // Click delete button directly on the last phase
         const deleteButton = page.locator('.phase-card button[onclick^="app.deletePhase"]').last();
         await deleteButton.click({ force: true });
-        await page.waitForTimeout(500);
 
-        // Check that phase was deleted (back to original count)
-        const afterDeleteCount = await page.locator('.phase-card').count();
-        expect(afterDeleteCount).toBe(initialCount);
+        // Wait for phase to be deleted
+        await expect(page.locator('.phase-card')).toHaveCount(initialCount);
     });
 
     test('should reset data', async ({ page }) => {
         await page.goto('/');
 
-        // Add some data
+        // Add a new phase
         const addButton = page.getByRole('button', { name: /ajouter une nouvelle phase|add a new phase/i });
         await addButton.click();
-        await page.waitForTimeout(500);
+
+        // Wait for phase to be added (should now have 2)
+        await expect(page.locator('.phase-card')).toHaveCount(2);
 
         // Listen for confirmation dialog
-        page.on('dialog', dialog => dialog.accept());
+        page.on('dialog', (dialog) => dialog.accept());
 
         // Click reset button
         const resetButton = page.getByRole('button', { name: /réinitialiser|reset/i });
         await resetButton.click();
-        await page.waitForTimeout(500);
 
-        // Verify data was reset
-        const phaseCount = await page.locator('.phase-card').count();
-        expect(phaseCount).toBe(1); // Should have one default phase
+        // Verify data was reset - should have one default phase
+        await expect(page.locator('.phase-card')).toHaveCount(1);
     });
 });
