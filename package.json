@@ -1,0 +1,51 @@
+{
+    "name": "roadmap-manager",
+    "version": "2.2.0",
+    "description": "Simple and smart multilingual roadmap manager",
+    "main": "index.html",
+    "scripts": {
+        "build": "node scripts/build.js",
+        "lint": "npm run lint:js && npm run lint:html && npm run format:check",
+        "lint:js": "eslint *.html --ext .html",
+        "lint:html": "html-validate index.html",
+        "format": "prettier --write \"**/*.{html,js,json,md,css}\"",
+        "format:check": "prettier --check \"**/*.{html,js,json,md,css}\"",
+        "test": "playwright test",
+        "test:ui": "playwright test --ui",
+        "test:headed": "playwright test --headed",
+        "test:debug": "playwright test --debug",
+        "serve": "http-server . -p 8080 -o",
+        "prepare": "node -e \"try { require('husky').install() } catch (e) {}\""
+    },
+    "keywords": [
+        "roadmap",
+        "project-management",
+        "planning",
+        "tracking",
+        "multilingual"
+    ],
+    "author": "alexcmb",
+    "license": "MIT",
+    "devDependencies": {
+        "@playwright/test": "^1.40.0",
+        "@types/node": "^20.10.0",
+        "eslint": "^8.55.0",
+        "eslint-plugin-html": "^7.1.0",
+        "html-validate": "^8.7.4",
+        "http-server": "^14.1.1",
+        "prettier": "^3.1.0",
+        "husky": "^8.0.3"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/alexcmb/Roadmap_Manager.git"
+    },
+    "bugs": {
+        "url": "https://github.com/alexcmb/Roadmap_Manager/issues"
+    },
+    "homepage": "https://github.com/alexcmb/Roadmap_Manager#readme"
+}

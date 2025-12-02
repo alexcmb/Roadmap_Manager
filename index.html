@@ -1,462 +1,636 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roadmap Manager - Multilingual Smart</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <style>
-        /* Base */
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .progress-transition { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        /* Editables */
-        [contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; transition: all 0.2s; cursor: text; border-radius: 2px; }
-        [contenteditable="true"]:hover { border-bottom: 1px dashed #94a3b8; background-color: rgba(255,255,255,0.5); }
-        [contenteditable="true"]:focus { background-color: #ffffff; border-bottom: 2px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Roadmap Manager - Multilingual Smart</title>
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- FontAwesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <!-- Confetti -->
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-        /* UI Interactions */
-        .phase-actions { opacity: 0; transform: translateY(-5px); transition: all 0.2s ease-in-out; }
-        .phase-card:hover .phase-actions { opacity: 1; transform: translateY(0); }
-        .task-row .delete-btn { opacity: 0; transition: opacity 0.2s; }
-        .task-row:hover .delete-btn { opacity: 1; }
-        .chevron-icon { transition: transform 0.3s ease; }
-        .rotate-180 { transform: rotate(180deg); }
-
-        /* Checkbox */
-        .custom-checkbox {
-            appearance: none; background-color: #fff; margin: 0; font: inherit; color: currentColor;
-            width: 1.15em; height: 1.15em; border: 2px solid #cbd5e1; border-radius: 0.25em;
-            display: grid; place-content: center; cursor: pointer; transition: all 0.2s;
-        }
-        .custom-checkbox::before {
-            content: ""; width: 0.65em; height: 0.65em; transform: scale(0);
-            transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em white;
-            transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-        }
-        .custom-checkbox:checked { background-color: currentColor; border-color: currentColor; }
-        .custom-checkbox:checked::before { transform: scale(1); }
-        .strikethrough { text-decoration: line-through; color: #94a3b8; }
-        .color-dot { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #cbd5e1; transition: transform 0.1s; }
-        .color-dot:hover { transform: scale(1.2); z-index: 10; }
-        
-        /* Date Input */
-        input[type="date"] { background: transparent; font-family: inherit; color: inherit; cursor: pointer; }
-        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; transition: opacity 0.2s; }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
-    </style>
-</head>
-<body class="pb-40">
-
-    <!-- HEADER -->
-    <div class="fixed top-0 w-full z-50 bg-slate-900 text-white shadow-xl border-b-4 border-blue-500">
-        <div class="max-w-6xl mx-auto px-4 py-3">
-            <div class="flex justify-between items-end mb-2">
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-500/20 p-2 rounded-lg">
-                        <i class="fa-solid fa-earth-americas text-blue-400 text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight leading-none" contenteditable="true" id="project-title">My Project Roadmap</h1>
-                        <p class="text-xs text-slate-400 mt-0.5 hidden md:block" contenteditable="true" id="project-desc">Project description goes here...</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-4">
-                    <!-- Language Switcher -->
-                    <select id="lang-selector" onchange="app.changeLanguage(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded px-2 py-1 focus:outline-none focus:border-blue-500 text-gray-300">
-                        <option value="fr">🇫🇷 Français</option>
-                        <option value="en">🇬🇧 English</option>
-                        <option value="es">🇪🇸 Español</option>
-                    </select>
-
-                    <div class="text-right">
-                        <div class="text-3xl font-bold text-blue-400 leading-none" id="header-percent">0%</div>
-                    </div>
-                </div>
-            </div>
-            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
-                <div id="header-progress" class="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-300 progress-transition shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: 0%"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN CONTAINER -->
-    <main class="max-w-6xl mx-auto px-4 mt-32 space-y-8" id="app-container">
-        <!-- Content Generated by JS -->
-    </main>
-    
-    <!-- ADD PHASE BUTTON -->
-    <div class="max-w-6xl mx-auto px-4 mt-12 mb-16 pt-8 border-t-2 border-dashed border-slate-200 text-center">
-        <button onclick="app.addPhase()" class="group relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white transition-all duration-200 bg-slate-800 rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 shadow-lg hover:shadow-xl hover:-translate-y-1">
-            <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
-            <i class="fa-solid fa-plus-circle mr-3 group-hover:rotate-90 transition-transform duration-300"></i> <span data-i18n="btnAddPhase">Ajouter une nouvelle Phase</span>
-        </button>
-        <p class="text-sm text-gray-400 mt-3" data-i18n="btnAddPhaseDesc">Cliquez pour créer une nouvelle étape majeure</p>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="fixed bottom-0 w-full bg-white/90 backdrop-blur border-t border-gray-200 py-3 z-40">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center text-sm text-gray-500">
-            <div class="font-mono text-xs">Roadmap v2.2 <span class="text-blue-400 font-bold ml-1">Smart i18n</span></div>
-            <div class="flex gap-6">
-                <button onclick="app.resetData()" class="hover:text-red-600 transition-colors flex items-center text-red-400">
-                    <i class="fa-solid fa-rotate-left mr-2"></i><span data-i18n="btnReset">Réinitialiser</span>
-                </button>
-                <span class="flex items-center text-green-600 font-medium">
-                    <i class="fa-solid fa-floppy-disk mr-2 animate-pulse"></i><span data-i18n="lblSaved">Sauvegarde auto</span>
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <!-- LOGIC -->
-    <script>
-        // --- DICTIONARY (TRANSLATIONS) ---
-        const i18n = {
-            fr: {
-                titlePlaceholder: "Titre du Projet",
-                descPlaceholder: "Description ou sous-titre du projet",
-                phaseTitle: "NOUVELLE PHASE",
-                phaseDesc: "Cliquez ici pour décrire cette étape...",
-                phaseNotes: "Notes et livrables...",
-                taskDefault: "Nouvelle tâche",
-                btnAddPhase: "Ajouter une nouvelle Phase",
-                btnAddPhaseDesc: "Cliquez pour créer une nouvelle étape majeure",
-                btnReset: "Réinitialiser par défaut",
-                lblSaved: "Sauvegarde auto",
-                lblProgress: "Progression",
-                lblNotes: "Notes & Livrables",
-                btnAddTask: "Ajouter une tâche",
-                status: ["PLANIFIÉ", "À FAIRE", "EN COURS", "EN ATTENTE", "TERMINÉ", "BLOQUÉ", "ANNULÉ"],
-                time: { today: "Aujourd'hui", late: "Retard", day: "j", prefix: "J-" },
-                colors: { green: "Vert", blue: "Bleu", purple: "Violet", orange: "Orange", slate: "Gris" },
-                tooltips: {
-                    date: "Date cible",
-                    status: "Modifier le statut",
-                    deletePhase: "Supprimer la Phase",
-                    deleteTask: "Supprimer la Tâche",
-                    color: "Thème"
-                },
-                confirmReset: "Attention : Cela va effacer toutes vos modifications. Continuer ?",
-                confirmDeletePhase: "Supprimer définitivement cette phase ?",
-                confirmDeleteTask: "Supprimer cette tâche ?"
-            },
-            en: {
-                titlePlaceholder: "Project Title",
-                descPlaceholder: "Project subtitle or description",
-                phaseTitle: "NEW PHASE",
-                phaseDesc: "Click here to describe this step...",
-                phaseNotes: "Notes and deliverables...",
-                taskDefault: "New task",
-                btnAddPhase: "Add a new Phase",
-                btnAddPhaseDesc: "Click to create a new major step",
-                btnReset: "Reset to default",
-                lblSaved: "Auto-saved",
-                lblProgress: "Progress",
-                lblNotes: "Notes & Deliverables",
-                btnAddTask: "Add a task",
-                status: ["PLANNED", "TO DO", "IN PROGRESS", "WAITING", "DONE", "BLOCKED", "CANCELED"],
-                time: { today: "Today", late: "Late", day: "d", prefix: "D-" },
-                colors: { green: "Green", blue: "Blue", purple: "Purple", orange: "Orange", slate: "Slate" },
-                tooltips: {
-                    date: "Target Date",
-                    status: "Change Status",
-                    deletePhase: "Delete Phase",
-                    deleteTask: "Delete Task",
-                    color: "Theme"
-                },
-                confirmReset: "Warning: This will erase all your changes. Continue?",
-                confirmDeletePhase: "Permanently delete this phase?",
-                confirmDeleteTask: "Delete this task?"
-            },
-            es: {
-                titlePlaceholder: "Título del Proyecto",
-                descPlaceholder: "Descripción del proyecto",
-                phaseTitle: "NUEVA FASE",
-                phaseDesc: "Haga clic aquí para describir...",
-                phaseNotes: "Notas y entregables...",
-                taskDefault: "Nueva tarea",
-                btnAddPhase: "Añadir nueva Fase",
-                btnAddPhaseDesc: "Haga clic para crear una etapa",
-                btnReset: "Restablecer",
-                lblSaved: "Guardado auto",
-                lblProgress: "Progreso",
-                lblNotes: "Notas y Entregables",
-                btnAddTask: "Añadir tarea",
-                status: ["PLANIFICADO", "POR HACER", "EN CURSO", "EN ESPERA", "HECHO", "BLOQUEADO", "CANCELADO"],
-                time: { today: "Hoy", late: "Retraso", day: "d", prefix: "D-" },
-                colors: { green: "Verde", blue: "Azul", purple: "Morado", orange: "Naranja", slate: "Gris" },
-                tooltips: {
-                    date: "Fecha objetivo",
-                    status: "Cambiar estado",
-                    deletePhase: "Eliminar Fase",
-                    deleteTask: "Eliminar Tarea",
-                    color: "Tema"
-                },
-                confirmReset: "Advertencia: Esto borrará todos sus cambios. ¿Continuar?",
-                confirmDeletePhase: "¿Eliminar permanentemente esta fase?",
-                confirmDeleteTask: "¿Eliminar esta tarea?"
+        <style>
+            /* Base */
+            body {
+                font-family:
+                    'Segoe UI',
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                background-color: #f8fafc;
+                color: #1e293b;
             }
-        };
+            .progress-transition {
+                transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            }
 
-        // --- APP ENGINE ---
-        const app = {
-            data: [],
-            lang: 'fr', // Default language
+            /* Editables */
+            [contenteditable='true'] {
+                outline: none;
+                border-bottom: 1px dashed transparent;
+                transition: all 0.2s;
+                cursor: text;
+                border-radius: 2px;
+            }
+            [contenteditable='true']:hover {
+                border-bottom: 1px dashed #94a3b8;
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+            [contenteditable='true']:focus {
+                background-color: #ffffff;
+                border-bottom: 2px solid #3b82f6;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
 
-            // Init
-            init() {
-                // Load Language
-                const savedLang = localStorage.getItem('roadmap_lang');
-                if(savedLang && i18n[savedLang]) this.lang = savedLang;
-                document.getElementById('lang-selector').value = this.lang;
+            /* UI Interactions */
+            .phase-actions {
+                opacity: 0;
+                transform: translateY(-5px);
+                transition: all 0.2s ease-in-out;
+            }
+            .phase-card:hover .phase-actions {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .task-row .delete-btn {
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            .task-row:hover .delete-btn {
+                opacity: 1;
+            }
+            .chevron-icon {
+                transition: transform 0.3s ease;
+            }
+            .rotate-180 {
+                transform: rotate(180deg);
+            }
 
-                // Load Data
-                const savedData = localStorage.getItem('roadmap_data_v4'); 
-                const savedMeta = JSON.parse(localStorage.getItem('roadmap_meta_v4') || '{}');
+            /* Checkbox */
+            .custom-checkbox {
+                appearance: none;
+                background-color: #fff;
+                margin: 0;
+                font: inherit;
+                color: currentColor;
+                width: 1.15em;
+                height: 1.15em;
+                border: 2px solid #cbd5e1;
+                border-radius: 0.25em;
+                display: grid;
+                place-content: center;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .custom-checkbox::before {
+                content: '';
+                width: 0.65em;
+                height: 0.65em;
+                transform: scale(0);
+                transition: 120ms transform ease-in-out;
+                box-shadow: inset 1em 1em white;
+                transform-origin: center;
+                clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+            }
+            .custom-checkbox:checked {
+                background-color: currentColor;
+                border-color: currentColor;
+            }
+            .custom-checkbox:checked::before {
+                transform: scale(1);
+            }
+            .strikethrough {
+                text-decoration: line-through;
+                color: #94a3b8;
+            }
+            .color-dot {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid white;
+                box-shadow: 0 0 0 1px #cbd5e1;
+                transition: transform 0.1s;
+            }
+            .color-dot:hover {
+                transform: scale(1.2);
+                z-index: 10;
+            }
 
-                // Load Header Texts
-                document.getElementById('project-title').innerText = savedMeta.title || i18n[this.lang].titlePlaceholder;
-                document.getElementById('project-desc').innerText = savedMeta.desc || i18n[this.lang].descPlaceholder;
+            /* Date Input */
+            input[type='date'] {
+                background: transparent;
+                font-family: inherit;
+                color: inherit;
+                cursor: pointer;
+            }
+            input[type='date']::-webkit-calendar-picker-indicator {
+                cursor: pointer;
+                opacity: 0.6;
+                transition: opacity 0.2s;
+            }
+            input[type='date']::-webkit-calendar-picker-indicator:hover {
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body class="pb-40">
+        <!-- HEADER -->
+        <div class="fixed top-0 w-full z-50 bg-slate-900 text-white shadow-xl border-b-4 border-blue-500">
+            <div class="max-w-6xl mx-auto px-4 py-3">
+                <div class="flex justify-between items-end mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-500/20 p-2 rounded-lg">
+                            <i class="fa-solid fa-earth-americas text-blue-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <h1
+                                class="text-xl font-bold tracking-tight leading-none"
+                                contenteditable="true"
+                                id="project-title"
+                            >
+                                My Project Roadmap
+                            </h1>
+                            <p
+                                class="text-xs text-slate-400 mt-0.5 hidden md:block"
+                                contenteditable="true"
+                                id="project-desc"
+                            >
+                                Project description goes here...
+                            </p>
+                        </div>
+                    </div>
 
-                // Header Listeners
-                document.getElementById('project-title').addEventListener('blur', (e) => app.saveMeta('title', e.target.innerText));
-                document.getElementById('project-desc').addEventListener('blur', (e) => app.saveMeta('desc', e.target.innerText));
+                    <div class="flex items-center gap-4">
+                        <!-- Language Switcher -->
+                        <select
+                            id="lang-selector"
+                            onchange="app.changeLanguage(this.value)"
+                            class="bg-slate-800 border border-slate-700 text-xs rounded px-2 py-1 focus:outline-none focus:border-blue-500 text-gray-300"
+                        >
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="es">🇪🇸 Español</option>
+                        </select>
 
-                if (savedData) {
-                    try {
-                        this.data = JSON.parse(savedData);
-                        this.data.forEach(p => { if (typeof p.expanded === 'undefined') p.expanded = true; });
-                    } catch(e) { this.loadDefault(); }
-                } else {
-                    this.loadDefault();
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-blue-400 leading-none" id="header-percent">0%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
+                    <div
+                        id="header-progress"
+                        class="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-300 progress-transition shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                        style="width: 0%"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTAINER -->
+        <main class="max-w-6xl mx-auto px-4 mt-32 space-y-8" id="app-container">
+            <!-- Content Generated by JS -->
+        </main>
+
+        <!-- ADD PHASE BUTTON -->
+        <div class="max-w-6xl mx-auto px-4 mt-12 mb-16 pt-8 border-t-2 border-dashed border-slate-200 text-center">
+            <button
+                type="button"
+                onclick="app.addPhase()"
+                class="group relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white transition-all duration-200 bg-slate-800 rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 shadow-lg hover:shadow-xl hover:-translate-y-1"
+            >
+                <span
+                    class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"
+                ></span>
+                <i class="fa-solid fa-plus-circle mr-3 group-hover:rotate-90 transition-transform duration-300"></i>
+                <span data-i18n="btnAddPhase">Ajouter une nouvelle Phase</span>
+            </button>
+            <p class="text-sm text-gray-400 mt-3" data-i18n="btnAddPhaseDesc">
+                Cliquez pour créer une nouvelle étape majeure
+            </p>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="fixed bottom-0 w-full bg-white/90 backdrop-blur border-t border-gray-200 py-3 z-40">
+            <div class="max-w-6xl mx-auto px-4 flex justify-between items-center text-sm text-gray-500">
+                <div class="font-mono text-xs">
+                    Roadmap v2.2 <span class="text-blue-400 font-bold ml-1">Smart i18n</span>
+                </div>
+                <div class="flex gap-6">
+                    <button
+                        type="button"
+                        onclick="app.resetData()"
+                        class="hover:text-red-600 transition-colors flex items-center text-red-400"
+                    >
+                        <i class="fa-solid fa-rotate-left mr-2"></i><span data-i18n="btnReset">Réinitialiser</span>
+                    </button>
+                    <span class="flex items-center text-green-600 font-medium">
+                        <i class="fa-solid fa-floppy-disk mr-2 animate-pulse"></i
+                        ><span data-i18n="lblSaved">Sauvegarde auto</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIC -->
+        <script>
+            // --- DICTIONARY (TRANSLATIONS) ---
+            const i18n = {
+                fr: {
+                    titlePlaceholder: 'Titre du Projet',
+                    descPlaceholder: 'Description ou sous-titre du projet',
+                    phaseTitle: 'NOUVELLE PHASE',
+                    phaseDesc: 'Cliquez ici pour décrire cette étape...',
+                    phaseNotes: 'Notes et livrables...',
+                    taskDefault: 'Nouvelle tâche',
+                    btnAddPhase: 'Ajouter une nouvelle Phase',
+                    btnAddPhaseDesc: 'Cliquez pour créer une nouvelle étape majeure',
+                    btnReset: 'Réinitialiser par défaut',
+                    lblSaved: 'Sauvegarde auto',
+                    lblProgress: 'Progression',
+                    lblNotes: 'Notes & Livrables',
+                    btnAddTask: 'Ajouter une tâche',
+                    status: ['PLANIFIÉ', 'À FAIRE', 'EN COURS', 'EN ATTENTE', 'TERMINÉ', 'BLOQUÉ', 'ANNULÉ'],
+                    time: { today: "Aujourd'hui", late: 'Retard', day: 'j', prefix: 'J-' },
+                    colors: { green: 'Vert', blue: 'Bleu', purple: 'Violet', orange: 'Orange', slate: 'Gris' },
+                    tooltips: {
+                        date: 'Date cible',
+                        status: 'Modifier le statut',
+                        deletePhase: 'Supprimer la Phase',
+                        deleteTask: 'Supprimer la Tâche',
+                        color: 'Thème'
+                    },
+                    confirmReset: 'Attention : Cela va effacer toutes vos modifications. Continuer ?',
+                    confirmDeletePhase: 'Supprimer définitivement cette phase ?',
+                    confirmDeleteTask: 'Supprimer cette tâche ?'
+                },
+                en: {
+                    titlePlaceholder: 'Project Title',
+                    descPlaceholder: 'Project subtitle or description',
+                    phaseTitle: 'NEW PHASE',
+                    phaseDesc: 'Click here to describe this step...',
+                    phaseNotes: 'Notes and deliverables...',
+                    taskDefault: 'New task',
+                    btnAddPhase: 'Add a new Phase',
+                    btnAddPhaseDesc: 'Click to create a new major step',
+                    btnReset: 'Reset to default',
+                    lblSaved: 'Auto-saved',
+                    lblProgress: 'Progress',
+                    lblNotes: 'Notes & Deliverables',
+                    btnAddTask: 'Add a task',
+                    status: ['PLANNED', 'TO DO', 'IN PROGRESS', 'WAITING', 'DONE', 'BLOCKED', 'CANCELED'],
+                    time: { today: 'Today', late: 'Late', day: 'd', prefix: 'D-' },
+                    colors: { green: 'Green', blue: 'Blue', purple: 'Purple', orange: 'Orange', slate: 'Slate' },
+                    tooltips: {
+                        date: 'Target Date',
+                        status: 'Change Status',
+                        deletePhase: 'Delete Phase',
+                        deleteTask: 'Delete Task',
+                        color: 'Theme'
+                    },
+                    confirmReset: 'Warning: This will erase all your changes. Continue?',
+                    confirmDeletePhase: 'Permanently delete this phase?',
+                    confirmDeleteTask: 'Delete this task?'
+                },
+                es: {
+                    titlePlaceholder: 'Título del Proyecto',
+                    descPlaceholder: 'Descripción del proyecto',
+                    phaseTitle: 'NUEVA FASE',
+                    phaseDesc: 'Haga clic aquí para describir...',
+                    phaseNotes: 'Notas y entregables...',
+                    taskDefault: 'Nueva tarea',
+                    btnAddPhase: 'Añadir nueva Fase',
+                    btnAddPhaseDesc: 'Haga clic para crear una etapa',
+                    btnReset: 'Restablecer',
+                    lblSaved: 'Guardado auto',
+                    lblProgress: 'Progreso',
+                    lblNotes: 'Notas y Entregables',
+                    btnAddTask: 'Añadir tarea',
+                    status: ['PLANIFICADO', 'POR HACER', 'EN CURSO', 'EN ESPERA', 'HECHO', 'BLOQUEADO', 'CANCELADO'],
+                    time: { today: 'Hoy', late: 'Retraso', day: 'd', prefix: 'D-' },
+                    colors: { green: 'Verde', blue: 'Azul', purple: 'Morado', orange: 'Naranja', slate: 'Gris' },
+                    tooltips: {
+                        date: 'Fecha objetivo',
+                        status: 'Cambiar estado',
+                        deletePhase: 'Eliminar Fase',
+                        deleteTask: 'Eliminar Tarea',
+                        color: 'Tema'
+                    },
+                    confirmReset: 'Advertencia: Esto borrará todos sus cambios. ¿Continuar?',
+                    confirmDeletePhase: '¿Eliminar permanentemente esta fase?',
+                    confirmDeleteTask: '¿Eliminar esta tarea?'
                 }
+            };
 
-                this.updateUITexts();
-                this.render();
-                this.updateGlobalProgress();
-            },
+            // --- APP ENGINE ---
+            const app = {
+                data: [],
+                lang: 'fr', // Default language
 
-            loadDefault() {
-                this.data = [
-                    {
-                        title: i18n[this.lang].phaseTitle,
-                        status: 1, 
-                        color: "slate",
-                        targetDate: "",
-                        expanded: true,
-                        description: i18n[this.lang].phaseDesc,
-                        tasks: [{ text: i18n[this.lang].taskDefault, done: false }],
-                        notes: i18n[this.lang].phaseNotes
-                    }
-                ];
-            },
+                // Init
+                init() {
+                    // Load Language
+                    const savedLang = localStorage.getItem('roadmap_lang');
+                    if (savedLang && i18n[savedLang]) this.lang = savedLang;
+                    document.getElementById('lang-selector').value = this.lang;
 
-            t(key) { return i18n[this.lang][key] || key; },
+                    // Load Data
+                    const savedData = localStorage.getItem('roadmap_data_v4');
+                    const savedMeta = JSON.parse(localStorage.getItem('roadmap_meta_v4') || '{}');
 
-            changeLanguage(newLang) {
-                const oldLang = this.lang;
-                this.lang = newLang;
-                localStorage.setItem('roadmap_lang', newLang);
-                
-                // SMART TRANSLATE: Translate default content in data
-                this.translateDefaults(oldLang, newLang);
+                    // Load Header Texts
+                    document.getElementById('project-title').innerText =
+                        savedMeta.title || i18n[this.lang].titlePlaceholder;
+                    document.getElementById('project-desc').innerText =
+                        savedMeta.desc || i18n[this.lang].descPlaceholder;
 
-                this.updateUITexts();
-                this.render(); 
-            },
+                    // Header Listeners
+                    document
+                        .getElementById('project-title')
+                        .addEventListener('blur', e => app.saveMeta('title', e.target.innerText));
+                    document
+                        .getElementById('project-desc')
+                        .addEventListener('blur', e => app.saveMeta('desc', e.target.innerText));
 
-            // CORE FUNCTION: Translates content only if it matches the default placeholder
-            translateDefaults(oldLang, newLang) {
-                const oldDict = i18n[oldLang];
-                const newDict = i18n[newLang];
-
-                // 1. Header Title & Desc
-                const titleEl = document.getElementById('project-title');
-                const descEl = document.getElementById('project-desc');
-                
-                if (titleEl.innerText === oldDict.titlePlaceholder) {
-                    titleEl.innerText = newDict.titlePlaceholder;
-                    this.saveMeta('title', newDict.titlePlaceholder);
-                }
-                if (descEl.innerText === oldDict.descPlaceholder) {
-                    descEl.innerText = newDict.descPlaceholder;
-                    this.saveMeta('desc', newDict.descPlaceholder);
-                }
-
-                // 2. Phase Data
-                this.data.forEach(phase => {
-                    if (phase.title === oldDict.phaseTitle) phase.title = newDict.phaseTitle;
-                    if (phase.description === oldDict.phaseDesc) phase.description = newDict.phaseDesc;
-                    if (phase.notes === oldDict.phaseNotes) phase.notes = newDict.phaseNotes;
-                    
-                    // 3. Tasks
-                    phase.tasks.forEach(task => {
-                        if (task.text === oldDict.taskDefault) task.text = newDict.taskDefault;
-                    });
-                });
-                
-                this.save();
-            },
-
-            updateUITexts() {
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    el.innerText = this.t(el.getAttribute('data-i18n'));
-                });
-            },
-
-            save() {
-                localStorage.setItem('roadmap_data_v4', JSON.stringify(this.data));
-                this.updateGlobalProgress();
-            },
-
-            saveMeta(key, value) {
-                const meta = JSON.parse(localStorage.getItem('roadmap_meta_v4') || '{}');
-                meta[key] = value;
-                localStorage.setItem('roadmap_meta_v4', JSON.stringify(meta));
-            },
-
-            updateGlobalProgress() {
-                let total = 0, completed = 0;
-                this.data.forEach(p => p.tasks.forEach(t => { total++; if(t.done) completed++; }));
-                const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
-                document.getElementById('header-percent').innerText = `${percent}%`;
-                document.getElementById('header-progress').style.width = `${percent}%`;
-                if (percent === 100 && total > 0) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            },
-
-            // --- DATA MANIPULATION ---
-
-            addPhase() {
-                this.data.push({
-                    title: this.t('phaseTitle'),
-                    status: 0,
-                    color: "slate",
-                    targetDate: "",
-                    expanded: true,
-                    description: this.t('phaseDesc'),
-                    tasks: [{ text: this.t('taskDefault'), done: false }],
-                    notes: this.t('phaseNotes')
-                });
-                this.save();
-                this.render();
-                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
-            },
-
-            deletePhase(idx) {
-                if(confirm(this.t('confirmDeletePhase'))) {
-                    this.data.splice(idx, 1);
-                    this.save();
-                    this.render();
-                }
-            },
-
-            updatePhaseField(idx, field, value) {
-                this.data[idx][field] = value;
-                this.save();
-                if(field === 'targetDate' || field === 'status') this.render();
-            },
-
-            setPhaseColor(idx, color) {
-                this.data[idx].color = color;
-                this.save();
-                this.render();
-            },
-
-            togglePhase(idx) {
-                this.data[idx].expanded = !this.data[idx].expanded;
-                this.save();
-                this.render();
-            },
-
-            addTask(pIdx) {
-                this.data[pIdx].tasks.push({ text: this.t('taskDefault'), done: false });
-                this.save();
-                this.render();
-            },
-
-            deleteTask(pIdx, tIdx) {
-                const text = this.data[pIdx].tasks[tIdx].text;
-                if(text === this.t('taskDefault') || text.trim() === "" || confirm(this.t('confirmDeleteTask'))) {
-                    this.data[pIdx].tasks.splice(tIdx, 1);
-                    this.save();
-                    this.render();
-                }
-            },
-
-            toggleTask(pIdx, tIdx) {
-                this.data[pIdx].tasks[tIdx].done = !this.data[pIdx].tasks[tIdx].done;
-                this.save();
-                this.render();
-            },
-
-            updateTaskText(pIdx, tIdx, text) {
-                this.data[pIdx].tasks[tIdx].text = text;
-                this.save();
-            },
-
-            resetData() {
-                if(confirm(this.t('confirmReset'))) {
-                    this.loadDefault();
-                    this.save();
-                    localStorage.removeItem('roadmap_meta_v4');
-                    document.getElementById('project-title').innerText = i18n[this.lang].titlePlaceholder;
-                    document.getElementById('project-desc').innerText = i18n[this.lang].descPlaceholder;
-                    this.render();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            },
-
-            // --- RENDER ---
-            render() {
-                const container = document.getElementById('app-container');
-                container.innerHTML = '';
-
-                const statusOptions = this.t('status');
-                const timeLabels = this.t('time');
-                const tooltips = this.t('tooltips');
-                const colorNames = this.t('colors');
-
-                this.data.forEach((phase, pIdx) => {
-                    const themes = {
-                        green:  { border: 'border-green-500',  bgHeader: 'bg-green-50',  textHeader: 'text-green-900', badge: 'bg-green-100 text-green-800',  checkbox: 'text-green-600',  bar: 'bg-green-500' },
-                        blue:   { border: 'border-blue-500',   bgHeader: 'bg-blue-50',   textHeader: 'text-blue-900',  badge: 'bg-blue-100 text-blue-800',   checkbox: 'text-blue-600',   bar: 'bg-blue-500' },
-                        purple: { border: 'border-purple-500', bgHeader: 'bg-purple-50', textHeader: 'text-purple-900',badge: 'bg-purple-100 text-purple-800',checkbox: 'text-purple-600', bar: 'bg-purple-500' },
-                        orange: { border: 'border-orange-500', bgHeader: 'bg-orange-50', textHeader: 'text-orange-900',badge: 'bg-orange-100 text-orange-800',checkbox: 'text-orange-600', bar: 'bg-orange-500' },
-                        slate:  { border: 'border-slate-500',  bgHeader: 'bg-slate-100', textHeader: 'text-slate-800', badge: 'bg-slate-200 text-slate-700', checkbox: 'text-slate-600',  bar: 'bg-slate-500' }
-                    };
-                    const theme = themes[phase.color] || themes['slate'];
-                    const pTotal = phase.tasks.length;
-                    const pDone = phase.tasks.filter(t => t.done).length;
-                    const pPercent = pTotal === 0 ? 0 : Math.round((pDone / pTotal) * 100);
-                    
-                    let dateBadge = "";
-                    if (phase.targetDate) {
-                        const [y, m, d] = phase.targetDate.split('-').map(Number);
-                        const target = new Date(y, m - 1, d);
-                        const today = new Date(); today.setHours(0,0,0,0);
-                        const diffTime = target - today;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                        if (diffDays < 0) {
-                            dateBadge = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 rounded animate-pulse whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${timeLabels.late} ${Math.abs(diffDays)}${timeLabels.day}</span>`;
-                        } else if (diffDays === 0) {
-                            dateBadge = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold text-orange-600 bg-orange-100 border border-orange-200 rounded whitespace-nowrap">${timeLabels.today}</span>`;
-                        } else {
-                            dateBadge = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded whitespace-nowrap">${timeLabels.prefix}${diffDays}</span>`;
+                    if (savedData) {
+                        try {
+                            this.data = JSON.parse(savedData);
+                            this.data.forEach(p => {
+                                if (typeof p.expanded === 'undefined') p.expanded = true;
+                            });
+                        } catch (e) {
+                            this.loadDefault();
                         }
+                    } else {
+                        this.loadDefault();
                     }
 
-                    let currentStatusIndex = (typeof phase.status === 'number' && phase.status < statusOptions.length) ? phase.status : 0;
+                    this.updateUITexts();
+                    this.render();
+                    this.updateGlobalProgress();
+                },
 
-                    const html = `
+                loadDefault() {
+                    this.data = [
+                        {
+                            title: i18n[this.lang].phaseTitle,
+                            status: 1,
+                            color: 'slate',
+                            targetDate: '',
+                            expanded: true,
+                            description: i18n[this.lang].phaseDesc,
+                            tasks: [{ text: i18n[this.lang].taskDefault, done: false }],
+                            notes: i18n[this.lang].phaseNotes
+                        }
+                    ];
+                },
+
+                t(key) {
+                    return i18n[this.lang][key] || key;
+                },
+
+                changeLanguage(newLang) {
+                    const oldLang = this.lang;
+                    this.lang = newLang;
+                    localStorage.setItem('roadmap_lang', newLang);
+
+                    // SMART TRANSLATE: Translate default content in data
+                    this.translateDefaults(oldLang, newLang);
+
+                    this.updateUITexts();
+                    this.render();
+                },
+
+                // CORE FUNCTION: Translates content only if it matches the default placeholder
+                translateDefaults(oldLang, newLang) {
+                    const oldDict = i18n[oldLang];
+                    const newDict = i18n[newLang];
+
+                    // 1. Header Title & Desc
+                    const titleEl = document.getElementById('project-title');
+                    const descEl = document.getElementById('project-desc');
+
+                    if (titleEl.innerText === oldDict.titlePlaceholder) {
+                        titleEl.innerText = newDict.titlePlaceholder;
+                        this.saveMeta('title', newDict.titlePlaceholder);
+                    }
+                    if (descEl.innerText === oldDict.descPlaceholder) {
+                        descEl.innerText = newDict.descPlaceholder;
+                        this.saveMeta('desc', newDict.descPlaceholder);
+                    }
+
+                    // 2. Phase Data
+                    this.data.forEach(phase => {
+                        if (phase.title === oldDict.phaseTitle) phase.title = newDict.phaseTitle;
+                        if (phase.description === oldDict.phaseDesc) phase.description = newDict.phaseDesc;
+                        if (phase.notes === oldDict.phaseNotes) phase.notes = newDict.phaseNotes;
+
+                        // 3. Tasks
+                        phase.tasks.forEach(task => {
+                            if (task.text === oldDict.taskDefault) task.text = newDict.taskDefault;
+                        });
+                    });
+
+                    this.save();
+                },
+
+                updateUITexts() {
+                    document.querySelectorAll('[data-i18n]').forEach(el => {
+                        el.innerText = this.t(el.getAttribute('data-i18n'));
+                    });
+                },
+
+                save() {
+                    localStorage.setItem('roadmap_data_v4', JSON.stringify(this.data));
+                    this.updateGlobalProgress();
+                },
+
+                saveMeta(key, value) {
+                    const meta = JSON.parse(localStorage.getItem('roadmap_meta_v4') || '{}');
+                    meta[key] = value;
+                    localStorage.setItem('roadmap_meta_v4', JSON.stringify(meta));
+                },
+
+                updateGlobalProgress() {
+                    let total = 0,
+                        completed = 0;
+                    this.data.forEach(p =>
+                        p.tasks.forEach(t => {
+                            total++;
+                            if (t.done) completed++;
+                        })
+                    );
+                    const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+                    document.getElementById('header-percent').innerText = `${percent}%`;
+                    document.getElementById('header-progress').style.width = `${percent}%`;
+                    if (percent === 100 && total > 0) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                },
+
+                // --- DATA MANIPULATION ---
+
+                addPhase() {
+                    this.data.push({
+                        title: this.t('phaseTitle'),
+                        status: 0,
+                        color: 'slate',
+                        targetDate: '',
+                        expanded: true,
+                        description: this.t('phaseDesc'),
+                        tasks: [{ text: this.t('taskDefault'), done: false }],
+                        notes: this.t('phaseNotes')
+                    });
+                    this.save();
+                    this.render();
+                    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+                },
+
+                deletePhase(idx) {
+                    if (confirm(this.t('confirmDeletePhase'))) {
+                        this.data.splice(idx, 1);
+                        this.save();
+                        this.render();
+                    }
+                },
+
+                updatePhaseField(idx, field, value) {
+                    this.data[idx][field] = value;
+                    this.save();
+                    if (field === 'targetDate' || field === 'status') this.render();
+                },
+
+                setPhaseColor(idx, color) {
+                    this.data[idx].color = color;
+                    this.save();
+                    this.render();
+                },
+
+                togglePhase(idx) {
+                    this.data[idx].expanded = !this.data[idx].expanded;
+                    this.save();
+                    this.render();
+                },
+
+                addTask(pIdx) {
+                    this.data[pIdx].tasks.push({ text: this.t('taskDefault'), done: false });
+                    this.save();
+                    this.render();
+                },
+
+                deleteTask(pIdx, tIdx) {
+                    const text = this.data[pIdx].tasks[tIdx].text;
+                    if (text === this.t('taskDefault') || text.trim() === '' || confirm(this.t('confirmDeleteTask'))) {
+                        this.data[pIdx].tasks.splice(tIdx, 1);
+                        this.save();
+                        this.render();
+                    }
+                },
+
+                toggleTask(pIdx, tIdx) {
+                    this.data[pIdx].tasks[tIdx].done = !this.data[pIdx].tasks[tIdx].done;
+                    this.save();
+                    this.render();
+                },
+
+                updateTaskText(pIdx, tIdx, text) {
+                    this.data[pIdx].tasks[tIdx].text = text;
+                    this.save();
+                },
+
+                resetData() {
+                    if (confirm(this.t('confirmReset'))) {
+                        this.loadDefault();
+                        this.save();
+                        localStorage.removeItem('roadmap_meta_v4');
+                        document.getElementById('project-title').innerText = i18n[this.lang].titlePlaceholder;
+                        document.getElementById('project-desc').innerText = i18n[this.lang].descPlaceholder;
+                        this.render();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                },
+
+                // --- RENDER ---
+                render() {
+                    const container = document.getElementById('app-container');
+                    container.innerHTML = '';
+
+                    const statusOptions = this.t('status');
+                    const timeLabels = this.t('time');
+                    const tooltips = this.t('tooltips');
+                    const colorNames = this.t('colors');
+
+                    this.data.forEach((phase, pIdx) => {
+                        const themes = {
+                            green: {
+                                border: 'border-green-500',
+                                bgHeader: 'bg-green-50',
+                                textHeader: 'text-green-900',
+                                badge: 'bg-green-100 text-green-800',
+                                checkbox: 'text-green-600',
+                                bar: 'bg-green-500'
+                            },
+                            blue: {
+                                border: 'border-blue-500',
+                                bgHeader: 'bg-blue-50',
+                                textHeader: 'text-blue-900',
+                                badge: 'bg-blue-100 text-blue-800',
+                                checkbox: 'text-blue-600',
+                                bar: 'bg-blue-500'
+                            },
+                            purple: {
+                                border: 'border-purple-500',
+                                bgHeader: 'bg-purple-50',
+                                textHeader: 'text-purple-900',
+                                badge: 'bg-purple-100 text-purple-800',
+                                checkbox: 'text-purple-600',
+                                bar: 'bg-purple-500'
+                            },
+                            orange: {
+                                border: 'border-orange-500',
+                                bgHeader: 'bg-orange-50',
+                                textHeader: 'text-orange-900',
+                                badge: 'bg-orange-100 text-orange-800',
+                                checkbox: 'text-orange-600',
+                                bar: 'bg-orange-500'
+                            },
+                            slate: {
+                                border: 'border-slate-500',
+                                bgHeader: 'bg-slate-100',
+                                textHeader: 'text-slate-800',
+                                badge: 'bg-slate-200 text-slate-700',
+                                checkbox: 'text-slate-600',
+                                bar: 'bg-slate-500'
+                            }
+                        };
+                        const theme = themes[phase.color] || themes['slate'];
+                        const pTotal = phase.tasks.length;
+                        const pDone = phase.tasks.filter(t => t.done).length;
+                        const pPercent = pTotal === 0 ? 0 : Math.round((pDone / pTotal) * 100);
+
+                        let dateBadge = '';
+                        if (phase.targetDate) {
+                            const [y, m, d] = phase.targetDate.split('-').map(Number);
+                            const target = new Date(y, m - 1, d);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const diffTime = target - today;
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            if (diffDays < 0) {
+                                dateBadge = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 rounded animate-pulse whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${timeLabels.late} ${Math.abs(diffDays)}${timeLabels.day}</span>`;
+                            } else if (diffDays === 0) {
+                                dateBadge = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold text-orange-600 bg-orange-100 border border-orange-200 rounded whitespace-nowrap">${timeLabels.today}</span>`;
+                            } else {
+                                dateBadge = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded whitespace-nowrap">${timeLabels.prefix}${diffDays}</span>`;
+                            }
+                        }
+
+                        let currentStatusIndex =
+                            typeof phase.status === 'number' && phase.status < statusOptions.length ? phase.status : 0;
+
+                        const html = `
                         <div class="phase-card bg-white rounded-xl shadow-sm border-l-8 ${theme.border} overflow-visible relative group">
                             
                             <div class="phase-actions absolute -top-4 right-4 flex gap-2 items-center bg-white shadow-lg rounded-full px-3 py-1.5 z-20 border border-gray-100">
@@ -505,9 +679,12 @@
                                     <div class="relative" title="${tooltips.status}">
                                         <select onchange="app.updatePhaseField(${pIdx}, 'status', parseInt(this.value))"
                                                 class="appearance-none px-4 py-1.5 ${theme.badge} rounded-full text-xs font-bold tracking-wider cursor-pointer hover:brightness-95 transition-all text-center min-w-[130px] uppercase shadow-sm focus:outline-none pr-8">
-                                            ${statusOptions.map((s, i) => 
-                                                `<option value="${i}" ${currentStatusIndex === i ? 'selected' : ''} class="bg-white text-slate-800">${s}</option>`
-                                            ).join('')}
+                                            ${statusOptions
+                                                .map(
+                                                    (s, i) =>
+                                                        `<option value="${i}" ${currentStatusIndex === i ? 'selected' : ''} class="bg-white text-slate-800">${s}</option>`
+                                                )
+                                                .join('')}
                                         </select>
                                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 opacity-60">
                                             <i class="fa-solid fa-chevron-down text-[10px]"></i>
@@ -522,7 +699,9 @@
                                      onblur="app.updatePhaseField(${pIdx}, 'description', this.innerText)">${phase.description}</div>
 
                                 <div class="space-y-1 mb-6">
-                                    ${phase.tasks.map((task, tIdx) => `
+                                    ${phase.tasks
+                                        .map(
+                                            (task, tIdx) => `
                                         <div class="task-row flex items-start gap-3 p-2 rounded hover:bg-slate-50 transition-colors group/task">
                                             <input type="checkbox" class="custom-checkbox mt-1 shrink-0 ${theme.checkbox}" 
                                                    ${task.done ? 'checked' : ''} 
@@ -535,7 +714,9 @@
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         </div>
-                                    `).join('')}
+                                    `
+                                        )
+                                        .join('')}
                                 </div>
 
                                 <button onclick="app.addTask(${pIdx})" 
@@ -554,12 +735,12 @@
                             </div>
                         </div>
                     `;
-                    container.insertAdjacentHTML('beforeend', html);
-                });
-            }
-        };
+                        container.insertAdjacentHTML('beforeend', html);
+                    });
+                }
+            };
 
-        window.addEventListener('DOMContentLoaded', () => app.init());
-    </script>
-</body>
+            window.addEventListener('DOMContentLoaded', () => app.init());
+        </script>
+    </body>
 </html>
