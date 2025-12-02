@@ -28,7 +28,7 @@
     "license": "MIT",
     "devDependencies": {
         "@playwright/test": "^1.40.0",
-        "@types/node": "^20.10.0",
+        "@types/node": "^24.10.1",
         "eslint": "^8.55.0",
         "eslint-plugin-html": "^7.1.0",
         "html-validate": "^8.7.4",
