@@ -3,6 +3,8 @@
     "rules": {
         "no-inline-style": "off",
         "require-sri": "off",
-        "script-element": "off"
+        "script-element": "off",
+        "void-style": "off",
+        "doctype-style": "off"
     }
 }

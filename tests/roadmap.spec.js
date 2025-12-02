@@ -144,7 +144,7 @@ test.describe('Roadmap Manager', () => {
         await expect(page.locator('.phase-card')).toHaveCount(initialCount + 1);
 
         // Listen for confirmation dialog
-        page.on('dialog', (dialog) => dialog.accept());
+        page.on('dialog', dialog => dialog.accept());
 
         // Click delete button directly on the last phase
         const deleteButton = page.locator('.phase-card button[onclick^="app.deletePhase"]').last();
@@ -165,7 +165,7 @@ test.describe('Roadmap Manager', () => {
         await expect(page.locator('.phase-card')).toHaveCount(2);
 
         // Listen for confirmation dialog
-        page.on('dialog', (dialog) => dialog.accept());
+        page.on('dialog', dialog => dialog.accept());
 
         // Click reset button
         const resetButton = page.getByRole('button', { name: /réinitialiser|reset/i });
