@@ -15,6 +15,7 @@ A simple, elegant, and multilingual roadmap manager built with vanilla HTML, CSS
 - ✅ **Task Management**: Create, edit, and track tasks within phases
 - 📅 **Date Tracking**: Set target dates with countdown indicators
 - 💾 **Auto-save**: Automatically saves your work to localStorage
+- 📥 **Export/Import**: Backup and restore your roadmap data as JSON
 - 🎉 **Celebration Effects**: Confetti animation on 100% completion
 - 📱 **Responsive Design**: Works on desktop and mobile devices
 - 🎯 **No Dependencies**: Pure vanilla JavaScript, no frameworks required
@@ -94,8 +95,9 @@ Use the language selector in the header to switch between:
 ### Data Management
 
 - **Auto-save**: Your data is automatically saved to browser localStorage
-- **Reset**: Click "Reset" in the footer to clear all data
-- **Export/Import**: (Coming soon)
+- **Export**: Click "Export" in the footer to download your roadmap as a JSON file
+- **Import**: Click "Import" in the footer to restore your roadmap from a JSON backup file
+- **Reset**: Click "Reset" in the footer to clear all data and start fresh
 
 ## 🏗️ Technology Stack
 
@@ -158,7 +160,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-- [ ] Export/Import functionality (JSON)
+- [x] Export/Import functionality (JSON) ✅
 - [ ] Print-friendly view
 - [ ] Dark mode
 - [ ] More languages
