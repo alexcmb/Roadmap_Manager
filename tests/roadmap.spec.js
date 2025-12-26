@@ -54,9 +54,6 @@ test.describe('Roadmap Manager', () => {
     test('should toggle task completion', async ({ page }) => {
         await page.goto('/');
 
-        // Get initial phase count (should be 1 default phase)
-        const initialCount = await page.locator('.phase-card').count();
-
         // Find and click the first checkbox
         const checkbox = page.locator('.custom-checkbox').first();
         await expect(checkbox).toBeVisible();
