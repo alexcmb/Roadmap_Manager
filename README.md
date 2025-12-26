@@ -1,4 +1,4 @@
-# 🗺️ Roadmap Manager
+# Roadmap Manager
 
 [![CI](https://github.com/alexcmb/Roadmap_Manager/actions/workflows/ci.yml/badge.svg)](https://github.com/alexcmb/Roadmap_Manager/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/alexcmb/Roadmap_Manager/actions/workflows/codeql.yml/badge.svg)](https://github.com/alexcmb/Roadmap_Manager/actions/workflows/codeql.yml)
@@ -7,20 +7,20 @@
 
 A simple, elegant, and multilingual roadmap manager built with vanilla HTML, CSS, and JavaScript. Perfect for managing project phases, tracking tasks, and visualizing progress.
 
-## ✨ Features
+## Features
 
-- 🌍 **Multilingual Support**: French, English, and Spanish
-- 📊 **Visual Progress Tracking**: Real-time progress bars and percentage indicators
-- 🎨 **Customizable Themes**: 5 color themes for different phases
-- ✅ **Task Management**: Create, edit, and track tasks within phases
-- 📅 **Date Tracking**: Set target dates with countdown indicators
-- 💾 **Auto-save**: Automatically saves your work to localStorage
-- 📥 **Export/Import**: Backup and restore your roadmap data as JSON
-- 🎉 **Celebration Effects**: Confetti animation on 100% completion
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-- 🎯 **No Dependencies**: Pure vanilla JavaScript, no frameworks required
+- **Multilingual Support**: French, English, and Spanish
+- **Visual Progress Tracking**: Real-time progress bars and percentage indicators
+- **Customizable Themes**: 5 color themes for different phases
+- **Task Management**: Create, edit, and track tasks within phases
+- **Date Tracking**: Set target dates with countdown indicators
+- **Auto-save**: Automatically saves your work to localStorage
+- **Export/Import**: Backup and restore your roadmap data as JSON
+- **Celebration Effects**: Confetti animation on 100% completion
+- **Responsive Design**: Works on desktop and mobile devices
+- **No Dependencies**: Pure vanilla JavaScript, no frameworks required
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Option 1: Direct Usage
 
@@ -42,7 +42,7 @@ npm run serve
 
 The application will be available at `http://localhost:8080`
 
-## 📦 Installation
+## Installation
 
 ### For Developers
 
@@ -67,7 +67,7 @@ npm run build
 3. Open `index.html` in your web browser
 4. Start planning your roadmap!
 
-## 🎮 Usage
+## Usage
 
 ### Creating a Phase
 
@@ -99,7 +99,7 @@ Use the language selector in the header to switch between:
 - **Import**: Click "Import" in the footer to restore your roadmap from a JSON backup file
 - **Reset**: Click "Reset" in the footer to clear all data and start fresh
 
-## 🏗️ Technology Stack
+## Technology Stack
 
 - **HTML5**: Semantic markup
 - **CSS3**: Tailwind CSS via CDN
@@ -107,7 +107,7 @@ Use the language selector in the header to switch between:
 - **Icons**: Font Awesome
 - **Effects**: Canvas Confetti
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -123,14 +123,14 @@ npm run test:headed
 npm run test:debug
 ```
 
-## 🔒 Security
+## Security
 
 - **CodeQL Analysis**: Automated security scanning
 - **Dependency Scanning**: Regular vulnerability checks with Trivy
 - **No External Data**: All data stored locally in browser
 - **No Backend**: Pure client-side application
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -142,23 +142,20 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🌟 Acknowledgments
+## Acknowledgments
 
 - Tailwind CSS for the beautiful utility-first CSS framework
 - Font Awesome for the comprehensive icon library
 - Canvas Confetti for the celebration effects
 - The open-source community for inspiration and support
 
-## 📧 Contact
+## Contact
 
 - **Issues**: [GitHub Issues](https://github.com/alexcmb/Roadmap_Manager/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/alexcmb/Roadmap_Manager/discussions)
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] Export/Import functionality (JSON) ✅
 - [ ] Print-friendly view
