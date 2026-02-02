@@ -27,7 +27,7 @@
     "author": "alexcmb",
     "license": "MIT",
     "devDependencies": {
-        "@playwright/test": "^1.40.0",
+        "@playwright/test": "^1.58.1",
         "@types/node": "^20.10.0",
         "eslint": "^8.55.0",
         "eslint-plugin-html": "^7.1.0",
